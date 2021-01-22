@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="./jexcel.css">
+  <link rel="stylesheet" href="./jsuites.css">
+</head>
+<body>
+  <div id="spreadsheet"></div>
+  <script src="./jsuites.js"></script>
+  <script src="./jexcel.js"></script>
+  <script>
+    class WSClient {
+      constructor (url) {
+        this.url = url
+        this.ws = ''
+        this.timeoutId = null
+      }
+
+      init (excelInstance) {
+        this.ws = new WebSocket(this.url)
+        this.ws.onopen = () => {
+            if (this.ws.readyState === 1) {
+              // 心跳
+              this.ws.send(JSON.stringify({type:'checkalive'}))
+              this.ws.keepAliveTimer = setInterval(() => {
+                if (this.ws.bufferedAmount === 0 && this.ws.readyState === 1) {
+                  this.ws.send(JSON.stringify({type:'checkalive'}))
+                }
+              }, 60000)
+              // 重新进入页面, 获取历史数据
+              this.ws.send(JSON.stringify({type: 'new'}))
+            }
+          }
+          this.ws.onmessage = res => {
+            try {
+              const msg = JSON.parse(res.data)
+              if (msg.type === 'excelChange') {
+                const data = msg.data
+                const oldData = excelInstance.getValueFromCoords(data.x, data.y)
+                if (data.value !== oldData) {
+                  excelInstance.setValueFromCoords(data.x, data.y, data.value)
+                }
+              } else if (msg.type === 'history') {
+                if (msg.has) {
+                  excelInstance.setData(msg.data)
+                }
+              }
+            } catch (error) {
+            }
+          }
+          this.ws.onerror = () => {}
+          this.ws.onclose = e => {
+            if (e.code === 23333) return
+            clearInterval(this.ws.keepAliveTimer)
+            // 判断是否断网
+            if (!window.navigator.onLine) {
+              this.ws.close(23333)
+            } else {
+              // 一分钟重连一次
+              this.timeoutId = setTimeout(() => {
+                this.ws.close(23333)
+                this.ws = new WebSocket(this.url)
+                clearTimeout(this.timeoutId)
+              }, 60000)
+            }
+          }
+      }
+    }
+  </script>
+  <script>
+    const mySpreadsheet = jexcel(document.getElementById('spreadsheet'), {
+      data: new Array(26).fill([]),
+      columns: [{
+          type: 'text',
+          width: 200,
+        },
+        {
+          type: 'text',
+          width: 200,
+        },
+        {
+          type: 'text',
+          width: 200,
+        },
+        {
+          type: 'text',
+          width: 200,
+        },
+        {
+          type: 'text',
+          width: 200,
+        },
+        {
+          type: 'text',
+          width: 200,
+        }
+      ],
+      tableOverflow: true, // 允许滚动
+      tableHeight: '400px', // 最大高度
+      allowDeleteRow: false,
+      allowDeleteColumn: false,
+      allowManualInsertRow: false,
+      allowManualInsertColumn: false,
+      onchange: excelChange
+    })
+    function excelChange (el, currentel, x, y, nv, ov) {
+      if (nv !== ov) {
+        const obj = {
+          x: x,
+          y: y,
+          value: nv
+        }
+        if (client.ws.readyState === 1) {
+          client.ws.send(JSON.stringify({
+            type: 'excelChange',
+            data: obj,
+            total: mySpreadsheet.getData()
+          }))
+        }
+      }
+    }
+
+    const client = new WSClient('ws://10.1.16.7:23333')
+    client.init(mySpreadsheet)
+  </script>
+</body>
+</html>
