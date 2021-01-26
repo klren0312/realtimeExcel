@@ -73,7 +73,7 @@
   </script>
   <script>
     const mySpreadsheet = jexcel(document.getElementById('spreadsheet'), {
-      data: new Array(26).fill([]),
+      data: [[], [], [], [], [], [], [], [], []],
       columns: [{
           type: 'text',
           width: 200,
@@ -107,6 +107,7 @@
       allowManualInsertColumn: false,
       onchange: excelChange
     })
+    console.log(mySpreadsheet.getData())
     function excelChange (el, currentel, x, y, nv, ov) {
       if (nv !== ov) {
         const obj = {
@@ -115,6 +116,7 @@
           value: nv
         }
         if (client.ws.readyState === 1) {
+          console.log(mySpreadsheet.getData())
           client.ws.send(JSON.stringify({
             type: 'excelChange',
             data: obj,
@@ -124,7 +126,7 @@
       }
     }
 
-    const client = new WSClient('ws://122.51.46.108:58888')
+    const client = new WSClient('ws://localhost:23333')
     client.init(mySpreadsheet)
   </script>
 </body>

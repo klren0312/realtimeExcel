@@ -21,6 +21,8 @@ wss.on('connection', (ws, req) => {
           has: cacheData.length === 0 ? false : true,
           data: cacheData
         }
+
+        console.log(cacheData)
         ws.send(JSON.stringify(newObj))
       } else {
         console.log(msg)
