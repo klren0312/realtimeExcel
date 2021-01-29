@@ -3,7 +3,6 @@ const wss = new WebSocket.Server({ port: 23333 })
 const Redis = require("ioredis")
 const redis = new Redis()
 
-let cacheData = []
 wss.on('connection', (ws, req) => {
   ws.on('message', msg => {
     try {
