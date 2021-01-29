@@ -13,6 +13,10 @@
   <script src="./jsuites.js"></script>
   <script src="./jexcel.js"></script>
   <script>
+    // 用于判断数据是否是ws推送过来
+    let comeFromData = ''
+    let comeFromInsert = ''
+    // ws连接对象
     class WSClient {
       constructor (url) {
         this.url = url
@@ -38,16 +42,28 @@
           this.ws.onmessage = res => {
             try {
               const msg = JSON.parse(res.data)
-              if (msg.type === 'excelChange') {
-                const data = msg.data
-                const oldData = excelInstance.getValueFromCoords(data.x, data.y)
-                if (data.value !== oldData) {
-                  excelInstance.setValueFromCoords(data.x, data.y, data.value)
-                }
-              } else if (msg.type === 'history') {
-                if (msg.has) {
-                  excelInstance.setData(msg.data)
-                }
+              const data = msg.data
+              switch (msg.type) {
+                case 'excelChange':
+                  const oldData = excelInstance.getValueFromCoords(data.x, data.y)
+                  if (data.value !== oldData) {
+                    comeFromData = `${data.x}${data.y}${data.value}`
+                    excelInstance.setValueFromCoords(data.x, data.y, data.value)
+                  }
+                  break
+                case 'history':
+                  if (msg.has) {
+                    excelInstance.setData(data)
+                  }
+                  break
+                case 'excelInsert':
+                  comeFromInsert = `${data.mixed}${data.rowNumber}${data.insertBefore}`
+                  excelInstance.insertRow({
+                    mixed: data.mixed,
+                    rowNumber: data.rowNumber,
+                    insertBefore: data.insertBefore
+                  })
+                  break
               }
             } catch (error) {
             }
@@ -70,8 +86,8 @@
           }
       }
     }
-  </script>
-  <script>
+
+    // 创建excel实例
     const mySpreadsheet = jexcel(document.getElementById('spreadsheet'), {
       data: [[], [], [], [], [], [], [], [], []],
       columns: [{
@@ -103,12 +119,17 @@
       tableHeight: '400px', // 最大高度
       allowDeleteRow: false,
       allowDeleteColumn: false,
-      allowManualInsertRow: false,
+      // allowManualInsertRow: false,
       allowManualInsertColumn: false,
+      oninsertrow: excelInsertRow,
       onchange: excelChange
     })
-    console.log(mySpreadsheet.getData())
     function excelChange (el, currentel, x, y, nv, ov) {
+      console.log(comeFromData, `${x}${y}${nv}`)
+      if (comeFromData === `${x}${y}${nv}`) {
+        comeFromData = ''
+        return
+      }
       if (nv !== ov) {
         const obj = {
           x: x,
@@ -116,13 +137,30 @@
           value: nv
         }
         if (client.ws.readyState === 1) {
-          console.log(mySpreadsheet.getData())
           client.ws.send(JSON.stringify({
             type: 'excelChange',
             data: obj,
             total: mySpreadsheet.getData()
           }))
         }
+      }
+    }
+    function excelInsertRow (el, rowNumber, numOfRows, rowRecords, insertBefore) {
+      if (comeFromInsert === `${numOfRows}${rowNumber}${insertBefore}`) {
+        comeFromInsert = ''
+        return
+      }
+      const obj = {
+        rowNumber: rowNumber,
+        mixed: numOfRows,
+        insertBefore: insertBefore
+      }
+      if (client.ws.readyState === 1) {
+        client.ws.send(JSON.stringify({
+          type: 'excelInsert',
+          data: obj,
+          total: mySpreadsheet.getData()
+        }))
       }
     }
 
