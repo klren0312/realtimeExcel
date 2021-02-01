@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>治电实时协作表格</title>
   <link rel="stylesheet" href="./jexcel.css">
   <link rel="stylesheet" href="./jsuites.css">
 </head>
@@ -89,7 +89,7 @@
 
     // 创建excel实例
     const mySpreadsheet = jexcel(document.getElementById('spreadsheet'), {
-      data: [[], [], [], [], [], [], [], [], []],
+      data: [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []],
       columns: [{
           type: 'text',
           width: 200,
@@ -116,7 +116,7 @@
         }
       ],
       tableOverflow: true, // 允许滚动
-      tableHeight: '400px', // 最大高度
+      tableHeight: window.innerHeight, // 最大高度
       allowDeleteRow: false,
       allowDeleteColumn: false,
       // allowManualInsertRow: false,
@@ -124,6 +124,10 @@
       oninsertrow: excelInsertRow,
       onchange: excelChange
     })
+    
+    /**
+     * 表格修改触发
+     */
     function excelChange (el, currentel, x, y, nv, ov) {
       console.log(comeFromData, `${x}${y}${nv}`)
       if (comeFromData === `${x}${y}${nv}`) {
@@ -145,6 +149,9 @@
         }
       }
     }
+    /**
+     * 表格插入新行触发
+     */
     function excelInsertRow (el, rowNumber, numOfRows, rowRecords, insertBefore) {
       if (comeFromInsert === `${numOfRows}${rowNumber}${insertBefore}`) {
         comeFromInsert = ''
