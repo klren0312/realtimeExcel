@@ -4,15 +4,36 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>治电实时协作表格</title>
+  <title></title>
   <link rel="stylesheet" href="./jexcel.css">
   <link rel="stylesheet" href="./jsuites.css">
+  <style>
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body>
+  <div class="loading">loading...</div>
   <div id="spreadsheet"></div>
   <script src="./jsuites.js"></script>
   <script src="./jexcel.js"></script>
   <script>
+    let defaultData = []
+    for (let i = 0; i < 100; i++) {
+      defaultData.push([])
+    }
+    window.onload = () => {
+      document.body.removeChild(document.querySelector('.loading'))
+    }
     // 用于判断数据是否是ws推送过来
     let comeFromData = ''
     let comeFromInsert = ''
@@ -89,7 +110,7 @@
 
     // 创建excel实例
     const mySpreadsheet = jexcel(document.getElementById('spreadsheet'), {
-      data: [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []],
+      data: defaultData,
       columns: [{
           type: 'text',
           width: 200,
