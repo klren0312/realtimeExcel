@@ -5,8 +5,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
-  <link rel="stylesheet" href="./jexcel.css">
-  <link rel="stylesheet" href="./jsuites.css">
+  <link rel="stylesheet" href="jexcel.css">
+  <link rel="stylesheet" href="jsuites.css">
   <style>
     .loading {
       display: flex;
@@ -23,9 +23,11 @@
 </head>
 <body>
   <div class="loading">loading...</div>
+  <input type="file" onchange="fileUpload(event)">
   <div id="spreadsheet"></div>
-  <script src="./jsuites.js"></script>
-  <script src="./jexcel.js"></script>
+  <script src="jsuites.js"></script>
+  <script src="jexcel.js"></script>
+  <script src="xlsx.full.min.js"></script>
   <script>
     let defaultData = []
     for (let i = 0; i < 100; i++) {
@@ -194,6 +196,38 @@
 
     const client = new WSClient('ws://122.51.46.108:23333')
     client.init(mySpreadsheet)
+
+    /**
+     * 导入excel文件
+     */
+    function fileUpload(e) {
+      if (!e)  return
+      const files = e.target.files, f = files[0]
+      const reader = new FileReader()
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result)
+        const workbook = XLSX.read(data, {type: 'array'})
+        const workSheet = workbook.Sheets[workbook.SheetNames[0]]
+        const res = XLSX.utils.sheet_to_json(workSheet)
+        let arr = []
+        res.forEach(d => {
+          const filterArr = Object.keys(d).map(v => {
+            if (v.indexOf('__EMPTY') !== -1) {
+              return ''
+            } else {
+              return v
+            }
+          })
+          arr.push(filterArr)
+        })
+        console.log(arr)
+        if (mySpreadsheet) {
+          mySpreadsheet.setData(arr)
+        }
+        e = null
+      }
+      reader.readAsArrayBuffer(f)
+    }
   </script>
 </body>
 </html>
