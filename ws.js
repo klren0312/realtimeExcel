@@ -43,6 +43,15 @@ wss.on('connection', (ws, req) => {
             }
           })
           break
+        case 'importExcel': // 表格导入
+          redis.set('cacheData', JSON.stringify(data.data))
+          wss.clients.forEach(client => {
+            // 通知除了当前客户端的其他客户端
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+              client.send(msg)
+            }
+          })
+          break
       }
     } catch (error) {
 
