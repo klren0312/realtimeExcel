@@ -2,8 +2,13 @@ const WebSocket = require('ws')
 const wss = new WebSocket.Server({ port: 23333 })
 const Redis = require("ioredis")
 const redis = new Redis()
-
+const users = new Set()
 wss.on('connection', (ws, req) => {
+  let guid = null
+  if (req.url.indexOf('guid') !== -1) {
+    guid = req.url.match(/\/?guid=(\S+)/)[1]
+    users.add(guid)
+  }
   ws.on('message', msg => {
     try {
       const data = JSON.parse(msg)
@@ -57,4 +62,9 @@ wss.on('connection', (ws, req) => {
 
     }
   })
+  ws.on('close', (ws, r) => {    
+    users.delete(guid)
+  })
 })
+
+
