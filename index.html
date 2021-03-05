@@ -81,11 +81,7 @@
                   break
                 case 'excelInsert':
                   comeFromInsert = `${data.mixed}${data.rowNumber}${data.insertBefore}`
-                  excelInstance.insertRow({
-                    mixed: data.mixed,
-                    rowNumber: data.rowNumber,
-                    insertBefore: data.insertBefore
-                  })
+                  excelInstance.insertRow(data.mixed, data.rowNumber, data.insertBefore)
                   break
                 case 'importExcel':
                   excelInstance.setData(data)
@@ -155,7 +151,6 @@
      * 表格修改触发
      */
     function excelChange (el, currentel, x, y, nv, ov) {
-      console.log(comeFromData, `${x}${y}${nv}`)
       if (comeFromData === `${x}${y}${nv}`) {
         comeFromData = ''
         return
