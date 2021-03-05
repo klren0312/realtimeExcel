@@ -196,7 +196,7 @@
         v = c == 'x' ? r : (r & 0x3) | 0x8
       return v.toString(16)
     })
-    const client = new WSClient(`ws://localhost:23333?guid=${random}`)
+    const client = new WSClient(`ws://122.51.46.108:23333?guid=${random}`)
     client.init(mySpreadsheet)
 
     /**
