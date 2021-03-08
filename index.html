@@ -24,6 +24,7 @@
 <body>
   <div class="loading">loading...</div>
   <input type="file" onchange="fileUpload(event)">
+  <span>online: <span id="online-number"></span></span>
   <div id="spreadsheet"></div>
   <script src="jsuites.js"></script>
   <script src="jexcel.js"></script>
@@ -85,6 +86,11 @@
                   break
                 case 'importExcel':
                   excelInstance.setData(data)
+                  break
+                case 'peopleNumber':
+                  const numberDom = document.getElementById('online-number')
+                  numberDom.innerText = data.total ? data.total : 1
+                  numberDom.setAttribute('title', data.peopleArr.join('\n'))
                   break
               }
             } catch (error) {

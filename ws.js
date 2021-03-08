@@ -9,6 +9,17 @@ wss.on('connection', (ws, req) => {
     guid = req.url.match(/\/?guid=(\S+)/)[1]
     users.add(guid)
   }
+  wss.clients.forEach(function each(client) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({
+        type: 'peopleNumber',
+        data: {
+          total: users.size,
+          peopleArr: [...users]
+        }
+      }))
+    }
+  })
   ws.on('message', msg => {
     try {
       const data = JSON.parse(msg)
@@ -62,8 +73,19 @@ wss.on('connection', (ws, req) => {
 
     }
   })
-  ws.on('close', (ws, r) => {    
+  ws.on('close', () => {    
     users.delete(guid)
+    wss.clients.forEach(function each(client) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: 'peopleNumber',
+          data: {
+            toatl: users.size,
+            peopleArr: [...users]
+          }
+        }))
+      }
+    })
   })
 })
 
